@@ -58,10 +58,7 @@ export class AuthServices {
       if (!isPasswordValid) return null;
       return user;
     } catch (error) {
-      this.logger.error(
-        `Falha na validação do usuário com email ${email}`,
-        error.stack,
-      );
+      this.logger.warn(`Provedor de login errado para ${email}`);
       throw error;
     }
   }
