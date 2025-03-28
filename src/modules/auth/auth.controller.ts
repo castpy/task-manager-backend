@@ -29,9 +29,6 @@ export class AuthController {
   }
 
   @Post('verify-token')
-  @ApiOkResponse({ type: AuthOkResponseDto })
-  @ApiUnauthorizedResponse({ type: ErrorResponseDto })
-  @ApiForbiddenResponse({ type: ErrorResponseDto })
   async verifyToken(@Body('token') token: string) {
     return await this.authService.verifyToken(token);
   }
