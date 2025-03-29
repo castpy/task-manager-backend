@@ -1,7 +1,8 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { UserServices } from './user.service';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiOkResponse,
   ApiSecurity,
   ApiTags,
@@ -11,6 +12,7 @@ import { Roles, Users } from '@prisma/client';
 import { GetUser } from '../auth/decorators/get.user.decorator';
 import { UserRoles } from '../auth/decorators/role.decorator';
 import { UserDto } from 'src/dtos/user.dto';
+import { NewTaskDto } from './dtos/newTask.dtos';
 
 @ApiTags('User')
 @ApiBearerAuth()
@@ -25,5 +27,12 @@ export class UserController {
   @UserRoles(Roles.ADMIN, Roles.USER)
   async getMe(@GetUser() user: Users) {
     return this.userServices.getMe(user);
+  }
+
+  @Post('/task')
+  @ApiBody({ type: NewTaskDto })
+  @UserRoles(Roles.ADMIN, Roles.USER)
+  async newTask(@GetUser() user: Users, @Body() data: NewTaskDto) {
+    return this.userServices.newTask(data, user);
   }
 }

@@ -1,6 +1,12 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { Users } from '@prisma/client';
+import { NewTask } from './types/newTask';
 
 @Injectable()
 export class UserServices {
@@ -31,6 +37,34 @@ export class UserServices {
       return userLocal;
     } catch (error) {
       this.logger.error(`Falha ao obter usuário ${user.id}`, error.stack);
+      throw error;
+    }
+  }
+
+  async newTask(data: NewTask, user: Users) {
+    const { title, description, status } = data;
+    try {
+      const localUser = await this.prisma.users.findFirst({
+        where: {
+          id: user.id,
+        },
+      });
+
+      if (!localUser) {
+        throw new ForbiddenException('Usuário sem permisão!');
+      }
+
+      await this.prisma.tasks.create({
+        data: {
+          title,
+          status,
+          description,
+          date_to: data.date.to,
+          date_from: data.date.from,
+        },
+      });
+    } catch (error) {
+      this.logger.error(`Falha ao criar uma tarefa`, error.stack);
       throw error;
     }
   }
