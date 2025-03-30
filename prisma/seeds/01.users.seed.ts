@@ -6,19 +6,51 @@ const prisma = new PrismaClient();
 
 export default async function seed() {
   try {
+    const tasks = [
+      ...Array.from({ length: 10 }, () => ({
+        id: uuid(),
+        title: 'Tarefa - To Do',
+        description: 'Descrição da tarefa - To Do',
+        status: 'to-do',
+        date_from: new Date(),
+        date_to: new Date(),
+      })),
+      ...Array.from({ length: 10 }, () => ({
+        id: uuid(),
+        title: 'Tarefa - In Progress',
+        description: 'Descrição da tarefa - In Progress',
+        status: 'in-progress',
+        date_from: new Date(),
+        date_to: new Date(),
+      })),
+      ...Array.from({ length: 10 }, () => ({
+        id: uuid(),
+        title: 'Tarefa - Completed',
+        description: 'Descrição da tarefa - Completed',
+        status: 'completed',
+        date_from: new Date(),
+        date_to: new Date(),
+      })),
+    ];
+
     await prisma.users.upsert({
       where: { id: uuid() },
       update: {},
       create: {
         id: uuid(),
         roles: [Roles.ADMIN],
-        email: 'user.admin@email.com',
+        email: 'user.teste@email.com',
         authProvider: AuthProvider.EMAIL,
         password: hashSync('Teste@123', 10),
         infos: {
           create: {
             id: uuid(),
-            name: 'Marcus Vinicius',
+            name: 'Usuário de Teste',
+          },
+        },
+        tasks: {
+          createMany: {
+            data: tasks,
           },
         },
       },

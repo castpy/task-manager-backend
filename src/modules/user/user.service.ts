@@ -16,6 +16,23 @@ export class UserServices {
 
   constructor(private readonly prisma: PrismaService) {}
 
+  async existUser(id: string): Promise<boolean> {
+    try {
+      const user = await this.prisma.users.findUnique({
+        where: { id },
+      });
+
+      if (!user) {
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      this.logger.error(`Falha ao buscar usuário ${id}`, error.stack);
+      throw error;
+    }
+  }
+
   async getMe(user: Users) {
     try {
       const userLocal = await this.prisma.users.findUnique({
@@ -46,13 +63,7 @@ export class UserServices {
   async newTask(data: NewTask, user: Users) {
     const { title, description, status } = data;
     try {
-      const localUser = await this.prisma.users.findFirst({
-        where: {
-          id: user.id,
-        },
-      });
-
-      if (!localUser) {
+      if (!this.existUser(user.id)) {
         throw new ForbiddenException('Usuário sem permisão!');
       }
 
@@ -61,6 +72,7 @@ export class UserServices {
           title,
           status,
           description,
+          usersId: user.id,
           date_to: data.date.to,
           date_from: data.date.from,
         },
@@ -73,17 +85,13 @@ export class UserServices {
 
   async getTasks(user: Users): Promise<Task[]> {
     try {
-      const localUser = await this.prisma.users.findFirst({
-        where: {
-          id: user.id,
-        },
-      });
-
-      if (!localUser) {
+      if (!this.existUser(user.id)) {
         throw new ForbiddenException('Usuário sem permisão!');
       }
 
-      const data = await this.prisma.tasks.findMany();
+      const data = await this.prisma.tasks.findMany({
+        where: { usersId: user.id },
+      });
 
       const tasks: Task[] = data.map((task) => ({
         id: task.id,
@@ -103,19 +111,13 @@ export class UserServices {
 
   async putStatusTask(data: { id: string; status: string }, user: Users) {
     try {
-      const localUser = await this.prisma.users.findFirst({
-        where: {
-          id: user.id,
-        },
-      });
-
-      if (!localUser) {
+      if (!this.existUser(user.id)) {
         throw new ForbiddenException('Usuário sem permisão!');
       }
 
       try {
         await this.prisma.tasks.update({
-          where: { id: data.id },
+          where: { id: data.id, usersId: user.id },
           data: {
             status: data.status,
           },
@@ -131,19 +133,13 @@ export class UserServices {
 
   async deleteTask(taskId: string, user: Users) {
     try {
-      const localUser = await this.prisma.users.findFirst({
-        where: {
-          id: user.id,
-        },
-      });
-
-      if (!localUser) {
+      if (!this.existUser(user.id)) {
         throw new ForbiddenException('Usuário sem permisão!');
       }
 
       try {
         await this.prisma.tasks.delete({
-          where: { id: taskId },
+          where: { id: taskId, usersId: user.id },
         });
       } catch {
         throw new BadRequestException('Erro ao deletar task!');
@@ -157,25 +153,19 @@ export class UserServices {
   async putTask(data: NewTask, taskId: string, user: Users) {
     const { title, description, status } = data;
     try {
-      const localUser = await this.prisma.users.findFirst({
-        where: {
-          id: user.id,
-        },
-      });
-
-      if (!localUser) {
+      if (!this.existUser(user.id)) {
         throw new ForbiddenException('Usuário sem permisão!');
       }
 
       const task = await this.prisma.tasks.findUnique({
-        where: { id: taskId },
+        where: { id: taskId, usersId: user.id },
       });
       if (!task) {
         throw new NotFoundException('Task não encontrada');
       }
 
       await this.prisma.tasks.update({
-        where: { id: taskId },
+        where: { id: taskId, usersId: user.id },
         data: {
           title,
           status,
