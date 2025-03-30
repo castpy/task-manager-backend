@@ -10,12 +10,14 @@ import {
 } from '@nestjs/common';
 import { UserServices } from './user.service';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
   ApiOkResponse,
   ApiParam,
   ApiSecurity,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { UserAuthGuard } from '../auth/utils/jwr.auth.guard.utils';
 import { Roles, Users } from '@prisma/client';
@@ -25,6 +27,7 @@ import { UserDto } from 'src/dtos/user.dto';
 import { NewTaskDto } from './dtos/newTask.dtos';
 import { PutTaskDto } from './dtos/updateTask.dto';
 import { TaskDto } from './dtos/getTasks.dto';
+import { ErrorResponseDto } from 'src/dtos/error.dto';
 
 @ApiTags('User')
 @ApiBearerAuth()
@@ -35,6 +38,8 @@ export class UserController {
   constructor(private readonly userServices: UserServices) {}
 
   @Get('/me')
+  @ApiUnauthorizedResponse({ type: ErrorResponseDto })
+  @ApiBadRequestResponse({ type: ErrorResponseDto })
   @ApiOkResponse({ type: UserDto })
   @UserRoles(Roles.ADMIN, Roles.USER)
   async getMe(@GetUser() user: Users) {
@@ -42,6 +47,8 @@ export class UserController {
   }
 
   @Get('/tasks')
+  @ApiUnauthorizedResponse({ type: ErrorResponseDto })
+  @ApiBadRequestResponse({ type: ErrorResponseDto })
   @UserRoles(Roles.ADMIN, Roles.USER)
   @ApiOkResponse({ type: TaskDto, isArray: true })
   async getTasks(@GetUser() user: Users) {
@@ -49,6 +56,8 @@ export class UserController {
   }
 
   @Post('/task')
+  @ApiUnauthorizedResponse({ type: ErrorResponseDto })
+  @ApiBadRequestResponse({ type: ErrorResponseDto })
   @ApiBody({ type: NewTaskDto })
   @UserRoles(Roles.ADMIN, Roles.USER)
   async newTask(@GetUser() user: Users, @Body() data: NewTaskDto) {
@@ -56,6 +65,8 @@ export class UserController {
   }
 
   @Put('/task/:id')
+  @ApiUnauthorizedResponse({ type: ErrorResponseDto })
+  @ApiBadRequestResponse({ type: ErrorResponseDto })
   @ApiBody({ type: NewTaskDto })
   @UserRoles(Roles.ADMIN, Roles.USER)
   @ApiParam({ name: 'id', type: 'string' })
@@ -68,6 +79,8 @@ export class UserController {
   }
 
   @Put('/status-task')
+  @ApiUnauthorizedResponse({ type: ErrorResponseDto })
+  @ApiBadRequestResponse({ type: ErrorResponseDto })
   @ApiBody({ type: PutTaskDto })
   @UserRoles(Roles.ADMIN, Roles.USER)
   async putStatusTask(@GetUser() user: Users, @Body() data: PutTaskDto) {
@@ -75,6 +88,8 @@ export class UserController {
   }
 
   @Delete('/task/:id')
+  @ApiUnauthorizedResponse({ type: ErrorResponseDto })
+  @ApiBadRequestResponse({ type: ErrorResponseDto })
   @UserRoles(Roles.ADMIN, Roles.USER)
   @ApiParam({ name: 'id', type: 'string' })
   async deleteTask(@GetUser() user: Users, @Param('id') id: string) {
