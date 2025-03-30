@@ -101,7 +101,7 @@ export class UserServices {
     }
   }
 
-  async putTask(data: { id: string; status: string }, user: Users) {
+  async putStatusTask(data: { id: string; status: string }, user: Users) {
     try {
       const localUser = await this.prisma.users.findFirst({
         where: {
@@ -125,6 +125,67 @@ export class UserServices {
       }
     } catch (error) {
       this.logger.error(`Falha ao atualizar task`, error.stack);
+      throw error;
+    }
+  }
+
+  async deleteTask(taskId: string, user: Users) {
+    try {
+      const localUser = await this.prisma.users.findFirst({
+        where: {
+          id: user.id,
+        },
+      });
+
+      if (!localUser) {
+        throw new ForbiddenException('Usuário sem permisão!');
+      }
+
+      try {
+        await this.prisma.tasks.delete({
+          where: { id: taskId },
+        });
+      } catch {
+        throw new BadRequestException('Erro ao deletar task!');
+      }
+    } catch (error) {
+      this.logger.error(`Falha ao deletar task`, error.stack);
+      throw error;
+    }
+  }
+
+  async putTask(data: NewTask, taskId: string, user: Users) {
+    const { title, description, status } = data;
+    try {
+      const localUser = await this.prisma.users.findFirst({
+        where: {
+          id: user.id,
+        },
+      });
+
+      if (!localUser) {
+        throw new ForbiddenException('Usuário sem permisão!');
+      }
+
+      const task = await this.prisma.tasks.findUnique({
+        where: { id: taskId },
+      });
+      if (!task) {
+        throw new NotFoundException('Task não encontrada');
+      }
+
+      await this.prisma.tasks.update({
+        where: { id: taskId },
+        data: {
+          title,
+          status,
+          description,
+          date_to: data.date.to,
+          date_from: data.date.from,
+        },
+      });
+    } catch (error) {
+      this.logger.error(`Falha ao ataulziar uma tarefa`, error.stack);
       throw error;
     }
   }

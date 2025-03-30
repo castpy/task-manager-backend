@@ -1,9 +1,19 @@
-import { Body, Controller, Get, Post, Put, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { UserServices } from './user.service';
 import {
   ApiBearerAuth,
   ApiBody,
   ApiOkResponse,
+  ApiParam,
   ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
@@ -43,10 +53,29 @@ export class UserController {
     return this.userServices.newTask(data, user);
   }
 
-  @Put('/task')
+  @Put('/task/:id')
+  @ApiBody({ type: NewTaskDto })
+  @UserRoles(Roles.ADMIN, Roles.USER)
+  @ApiParam({ name: 'id', type: 'string' })
+  async putTask(
+    @GetUser() user: Users,
+    @Body() data: NewTaskDto,
+    @Param('id') id: string,
+  ) {
+    return this.userServices.putTask(data, id, user);
+  }
+
+  @Put('/status-task')
   @ApiBody({ type: PutTaskDto })
   @UserRoles(Roles.ADMIN, Roles.USER)
-  async putTask(@GetUser() user: Users, @Body() data: PutTaskDto) {
-    return this.userServices.putTask(data, user);
+  async putStatusTask(@GetUser() user: Users, @Body() data: PutTaskDto) {
+    return this.userServices.putStatusTask(data, user);
+  }
+
+  @Delete('/task/:id')
+  @UserRoles(Roles.ADMIN, Roles.USER)
+  @ApiParam({ name: 'id', type: 'string' })
+  async deleteTask(@GetUser() user: Users, @Param('id') id: string) {
+    return this.userServices.deleteTask(id, user);
   }
 }
