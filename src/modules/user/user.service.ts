@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   Logger,
@@ -96,6 +97,34 @@ export class UserServices {
       return tasks;
     } catch (error) {
       this.logger.error(`Falha ao buscar tasks`, error.stack);
+      throw error;
+    }
+  }
+
+  async putTask(data: { id: string; status: string }, user: Users) {
+    try {
+      const localUser = await this.prisma.users.findFirst({
+        where: {
+          id: user.id,
+        },
+      });
+
+      if (!localUser) {
+        throw new ForbiddenException('Usuário sem permisão!');
+      }
+
+      try {
+        await this.prisma.tasks.update({
+          where: { id: data.id },
+          data: {
+            status: data.status,
+          },
+        });
+      } catch {
+        throw new BadRequestException('Erro ao atualizar task!');
+      }
+    } catch (error) {
+      this.logger.error(`Falha ao atualizar task`, error.stack);
       throw error;
     }
   }

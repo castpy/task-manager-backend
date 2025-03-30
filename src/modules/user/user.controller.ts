@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, UseGuards } from '@nestjs/common';
 import { UserServices } from './user.service';
 import {
   ApiBearerAuth,
@@ -13,6 +13,7 @@ import { GetUser } from '../auth/decorators/get.user.decorator';
 import { UserRoles } from '../auth/decorators/role.decorator';
 import { UserDto } from 'src/dtos/user.dto';
 import { NewTaskDto } from './dtos/newTask.dtos';
+import { PutTaskDto } from './dtos/updateTask.dto';
 
 @ApiTags('User')
 @ApiBearerAuth()
@@ -40,5 +41,12 @@ export class UserController {
   @UserRoles(Roles.ADMIN, Roles.USER)
   async newTask(@GetUser() user: Users, @Body() data: NewTaskDto) {
     return this.userServices.newTask(data, user);
+  }
+
+  @Put('/task')
+  @ApiBody({ type: PutTaskDto })
+  @UserRoles(Roles.ADMIN, Roles.USER)
+  async putTask(@GetUser() user: Users, @Body() data: PutTaskDto) {
+    return this.userServices.putTask(data, user);
   }
 }
