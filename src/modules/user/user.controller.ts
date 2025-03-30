@@ -24,6 +24,7 @@ import { UserRoles } from '../auth/decorators/role.decorator';
 import { UserDto } from 'src/dtos/user.dto';
 import { NewTaskDto } from './dtos/newTask.dtos';
 import { PutTaskDto } from './dtos/updateTask.dto';
+import { TaskDto } from './dtos/getTasks.dto';
 
 @ApiTags('User')
 @ApiBearerAuth()
@@ -42,6 +43,7 @@ export class UserController {
 
   @Get('/tasks')
   @UserRoles(Roles.ADMIN, Roles.USER)
+  @ApiOkResponse({ type: TaskDto, isArray: true })
   async getTasks(@GetUser() user: Users) {
     return this.userServices.getTasks(user);
   }
