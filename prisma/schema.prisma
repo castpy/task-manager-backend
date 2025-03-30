@@ -45,3 +45,17 @@ model UsersInfo {
 
   @@map("users_info")
 }
+
+model Tasks {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  date_from   DateTime
+  date_to     DateTime
+  status      String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tasks")
+}
