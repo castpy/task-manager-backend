@@ -16,6 +16,23 @@ export class UserServices {
 
   constructor(private readonly prisma: PrismaService) {}
 
+  async existUser(id: string): Promise<boolean> {
+    try {
+      const user = await this.prisma.users.findUnique({
+        where: { id },
+      });
+
+      if (!user) {
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      this.logger.error(`Falha ao buscar usuário ${id}`, error.stack);
+      throw error;
+    }
+  }
+
   async getMe(user: Users) {
     try {
       const userLocal = await this.prisma.users.findUnique({
@@ -46,13 +63,7 @@ export class UserServices {
   async newTask(data: NewTask, user: Users) {
     const { title, description, status } = data;
     try {
-      const localUser = await this.prisma.users.findFirst({
-        where: {
-          id: user.id,
-        },
-      });
-
-      if (!localUser) {
+      if (!this.existUser(user.id)) {
         throw new ForbiddenException('Usuário sem permisão!');
       }
 
@@ -73,13 +84,7 @@ export class UserServices {
 
   async getTasks(user: Users): Promise<Task[]> {
     try {
-      const localUser = await this.prisma.users.findFirst({
-        where: {
-          id: user.id,
-        },
-      });
-
-      if (!localUser) {
+      if (!this.existUser(user.id)) {
         throw new ForbiddenException('Usuário sem permisão!');
       }
 
@@ -103,13 +108,7 @@ export class UserServices {
 
   async putStatusTask(data: { id: string; status: string }, user: Users) {
     try {
-      const localUser = await this.prisma.users.findFirst({
-        where: {
-          id: user.id,
-        },
-      });
-
-      if (!localUser) {
+      if (!this.existUser(user.id)) {
         throw new ForbiddenException('Usuário sem permisão!');
       }
 
@@ -131,13 +130,7 @@ export class UserServices {
 
   async deleteTask(taskId: string, user: Users) {
     try {
-      const localUser = await this.prisma.users.findFirst({
-        where: {
-          id: user.id,
-        },
-      });
-
-      if (!localUser) {
+      if (!this.existUser(user.id)) {
         throw new ForbiddenException('Usuário sem permisão!');
       }
 
@@ -157,13 +150,7 @@ export class UserServices {
   async putTask(data: NewTask, taskId: string, user: Users) {
     const { title, description, status } = data;
     try {
-      const localUser = await this.prisma.users.findFirst({
-        where: {
-          id: user.id,
-        },
-      });
-
-      if (!localUser) {
+      if (!this.existUser(user.id)) {
         throw new ForbiddenException('Usuário sem permisão!');
       }
 
