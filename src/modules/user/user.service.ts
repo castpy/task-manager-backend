@@ -72,6 +72,7 @@ export class UserServices {
           title,
           status,
           description,
+          usersId: user.id,
           date_to: data.date.to,
           date_from: data.date.from,
         },
@@ -88,7 +89,9 @@ export class UserServices {
         throw new ForbiddenException('Usuário sem permisão!');
       }
 
-      const data = await this.prisma.tasks.findMany();
+      const data = await this.prisma.tasks.findMany({
+        where: { usersId: user.id },
+      });
 
       const tasks: Task[] = data.map((task) => ({
         id: task.id,
@@ -114,7 +117,7 @@ export class UserServices {
 
       try {
         await this.prisma.tasks.update({
-          where: { id: data.id },
+          where: { id: data.id, usersId: user.id },
           data: {
             status: data.status,
           },
@@ -136,7 +139,7 @@ export class UserServices {
 
       try {
         await this.prisma.tasks.delete({
-          where: { id: taskId },
+          where: { id: taskId, usersId: user.id },
         });
       } catch {
         throw new BadRequestException('Erro ao deletar task!');
@@ -155,14 +158,14 @@ export class UserServices {
       }
 
       const task = await this.prisma.tasks.findUnique({
-        where: { id: taskId },
+        where: { id: taskId, usersId: user.id },
       });
       if (!task) {
         throw new NotFoundException('Task não encontrada');
       }
 
       await this.prisma.tasks.update({
-        where: { id: taskId },
+        where: { id: taskId, usersId: user.id },
         data: {
           title,
           status,
