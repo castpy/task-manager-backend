@@ -7,6 +7,7 @@ import {
 import { PrismaService } from 'src/prisma.service';
 import { Users } from '@prisma/client';
 import { NewTask } from './types/newTask';
+import { Task } from 'src/@types/task';
 
 @Injectable()
 export class UserServices {
@@ -65,6 +66,36 @@ export class UserServices {
       });
     } catch (error) {
       this.logger.error(`Falha ao criar uma tarefa`, error.stack);
+      throw error;
+    }
+  }
+
+  async getTasks(user: Users): Promise<Task[]> {
+    try {
+      const localUser = await this.prisma.users.findFirst({
+        where: {
+          id: user.id,
+        },
+      });
+
+      if (!localUser) {
+        throw new ForbiddenException('Usuário sem permisão!');
+      }
+
+      const data = await this.prisma.tasks.findMany();
+
+      const tasks: Task[] = data.map((task) => ({
+        id: task.id,
+        title: task.title,
+        description: task.description,
+        date_from: task.date_from.toISOString(),
+        date_to: task.date_to.toISOString(),
+        status: task.status,
+      }));
+
+      return tasks;
+    } catch (error) {
+      this.logger.error(`Falha ao buscar tasks`, error.stack);
       throw error;
     }
   }

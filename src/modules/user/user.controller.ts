@@ -29,6 +29,12 @@ export class UserController {
     return this.userServices.getMe(user);
   }
 
+  @Get('/tasks')
+  @UserRoles(Roles.ADMIN, Roles.USER)
+  async getTasks(@GetUser() user: Users) {
+    return this.userServices.getTasks(user);
+  }
+
   @Post('/task')
   @ApiBody({ type: NewTaskDto })
   @UserRoles(Roles.ADMIN, Roles.USER)
